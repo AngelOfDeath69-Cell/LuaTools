@@ -36,8 +36,9 @@ internal sealed class SettingsBackupService
         try
         {
             GuardSettingsFile(backupPath);
-            AppSettings snapshot = _settings.Snapshot();
-            snapshot.HubcapApiKey = null;
+            // Whitelist explicitly: future AppSettings fields never silently become
+            // portable exports, particularly newly introduced credentials or tokens.
+            AppSettings snapshot = PortableSnapshot(_settings.Snapshot());
 
             var payload = JsonSerializer.Serialize(snapshot);
             var envelope = new Envelope
@@ -110,6 +111,22 @@ internal sealed class SettingsBackupService
             throw;
         }
     }
+
+    internal static AppSettings PortableSnapshot(AppSettings source) => new()
+    {
+        SteamPathOverride = source.SteamPathOverride,
+        SelectedMode = source.SelectedMode,
+        AutoUpdateApps = source.AutoUpdateApps,
+        DonateKeys = source.DonateKeys,
+        ManagePageSize = source.ManagePageSize,
+        FixesPageSize = source.FixesPageSize,
+        BuildsPageSize = source.BuildsPageSize,
+        Language = source.Language,
+        StartWithWindows = source.StartWithWindows,
+        MinimizeToTray = source.MinimizeToTray,
+        FastFetch = source.FastFetch,
+        DnsMode = source.DnsMode
+    };
 
     private void GuardSettingsFile(string destination)
     {
