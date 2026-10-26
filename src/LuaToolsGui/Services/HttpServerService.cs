@@ -455,7 +455,7 @@ public class HttpServerService : IHostedService
         }
         catch (Exception ex)
         {
-            return (500, JsonErr(ex.Message));
+            return (500, JsonErr("Internal server error"));
         }
     }
 
@@ -519,7 +519,7 @@ public class HttpServerService : IHostedService
         }
         catch (Exception ex)
         {
-            return (500, JsonErr(ex.Message));
+            return (500, JsonErr("Internal server error"));
         }
     }
 
