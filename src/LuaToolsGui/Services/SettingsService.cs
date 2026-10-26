@@ -61,13 +61,46 @@ public class AppSettings
 
 public class SettingsService
 {
-    private static readonly string Dir =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "LuaToolsGui");
-    private static readonly string FilePath = Path.Combine(Dir, "settings.json");
+    private readonly string _dir;
+    private readonly string _filePath;
+    private readonly string _tmpPath;
+    private readonly string _bakPath;
 
     private AppSettings _settings = new();
 
-    public SettingsService() => Load();
+    public SettingsService() : this(Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "LuaToolsGui", "settings.json")) { }
+
+    /// <summary>Override the settings path for isolated test and recovery scenarios.</summary>
+    internal SettingsService(string filePath)
+    {
+        _filePath = Path.GetFullPath(filePath);
+        _dir = Path.GetDirectoryName(_filePath)!;
+        _tmpPath = _filePath + ".tmp";
+        _bakPath = _filePath + ".bak";
+        Load();
+    }
+
+    internal string SettingsFilePath => _filePath;
+
+    internal AppSettings Snapshot() =>
+        JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(_settings))!;
+
+    /// <summary>Apply settings as one persisted operation, keeping the local API key unchanged.</summary>
+    internal void ApplyRestoredSettings(AppSettings restored)
+    {
+        ArgumentNullException.ThrowIfNull(restored);
+        var previous = _settings;
+        restored.HubcapApiKey = previous.HubcapApiKey;
+        _settings = restored;
+        try { Save(); }
+        catch
+        {
+            _settings = previous;
+            throw;
+        }
+    }
 
     /// <summary>User-chosen Steam folder. Null = auto-detect from registry. Persisted only when set.</summary>
     public string? SteamPathOverride
@@ -173,17 +206,26 @@ public class SettingsService
         set { _settings.DnsMode = value; Save(); }
     }
 
-    private static readonly string TmpPath = FilePath + ".tmp";
-    private static readonly string BakPath = FilePath + ".bak";
-
     private void Load()
     {
-        // Prefer the primary file; fall back to the last-good .bak. Crucially, NEVER silently reset a
-        // corrupt-but-present file to defaults (a later Save would then overwrite it and lose real data).
-        // Move it aside to .corrupt so it's preserved and can't be clobbered.
-        if (TryLoad(FilePath)) return;
-        PreserveCorrupt(FilePath);
-        if (TryLoad(BakPath)) return;
+        if (TryLoad(_filePath)) return;
+
+        bool corruptPrimary = File.Exists(_filePath);
+        if (corruptPrimary)
+        {
+            PreserveCorrupt(_filePath);
+            DiagnosticsService.Default.Record(DiagnosticEvent.SettingsPrimaryCorrupt);
+        }
+
+        if (TryLoad(_bakPath))
+        {
+            DiagnosticsService.Default.Record(DiagnosticEvent.SettingsRecoveredFromBackup);
+            return;
+        }
+
+        if (corruptPrimary || File.Exists(_bakPath))
+            DiagnosticsService.Default.Record(DiagnosticEvent.SettingsRecoveryUnavailable);
+
         _settings = new AppSettings();
     }
 
@@ -208,10 +250,15 @@ public class SettingsService
     {
         try
         {
-            if (File.Exists(path) && new FileInfo(path).Length > 0)
-                File.Move(path, path + ".corrupt", overwrite: true);
+            if (File.Exists(path))
+            {
+                // Preserve *every* corrupt copy; never overwrite an earlier recovery file.
+                File.Move(path, path + "." + DateTime.UtcNow.ToString("yyyyMMddHHmmss") +
+                    "." + Guid.NewGuid().ToString("N") + ".corrupt");
+            }
         }
-        catch { /* best effort */ }
+        catch (IOException) { /* best effort: never delete the original */ }
+        catch (UnauthorizedAccessException) { /* preserve the original */ }
     }
 
 
@@ -239,20 +286,20 @@ public class SettingsService
         // silently lost on the next save. (FixesPageSize was missing.)
         if (!HasPersistedValues(_settings))
         {
-            foreach (var p in new[] { FilePath, BakPath, TmpPath })
+            foreach (var p in new[] { _filePath, _bakPath, _tmpPath })
                 try { if (File.Exists(p)) File.Delete(p); } catch { /* best effort */ }
             return;
         }
 
-        Directory.CreateDirectory(Dir);
+        Directory.CreateDirectory(_dir);
         string json = JsonSerializer.Serialize(_settings, new JsonSerializerOptions { WriteIndented = true });
 
         // Atomic write: fill a temp file, then rename it over the target. A crash/kill mid-write can only
         // ever truncate the .tmp. The live settings.json is replaced by an atomic move (same-volume rename)
         // and is therefore never left half-written. (This class of loss is exactly what a forced kill during
         // a plain WriteAllText caused.) A .bak of the last good file is kept as a second recovery source.
-        File.WriteAllText(TmpPath, json);
-        try { if (File.Exists(FilePath)) File.Copy(FilePath, BakPath, overwrite: true); } catch { /* best effort */ }
-        File.Move(TmpPath, FilePath, overwrite: true);
+        File.WriteAllText(_tmpPath, json);
+        try { if (File.Exists(_filePath)) File.Copy(_filePath, _bakPath, overwrite: true); } catch { /* best effort */ }
+        File.Move(_tmpPath, _filePath, overwrite: true);
     }
 }
