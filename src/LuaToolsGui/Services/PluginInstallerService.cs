@@ -314,6 +314,20 @@ public class PluginInstallerService(SteamService steam, GithubProxy gh, CefInjec
             slotAssets[slot] = asset;
         }
 
+        // Executable DLLs and injected JS must never be installed without authenticated
+        // per-asset SHA-256 digests. GitHub mirrors are only transport, not trust anchors.
+        string? expectedZipSha = AssetDigest(latest, PluginZipAsset);
+        if (expectedZipSha is null)
+            return (false, string.Format(Resources.Strings.Plugin_Err_VerifyFailed, PluginZipAsset));
+        var expectedSlotSha = new Dictionary<LoaderSlot, string>();
+        foreach (var slot in Slots)
+        {
+            string? sha = AssetDigest(latest, slot.DllAsset);
+            if (sha is null)
+                return (false, string.Format(Resources.Strings.Plugin_Err_VerifyFailed, slot.DllAsset));
+            expectedSlotSha[slot] = sha;
+        }
+
         string tmp = Path.Combine(Path.GetTempPath(), "luatools-plugin-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tmp);
         Dictionary<string, List<string>>? disabledMillenniumEntries = null;
@@ -331,14 +345,14 @@ public class PluginInstallerService(SteamService steam, GithubProxy gh, CefInjec
 
             // Verify each against its release asset digest before touching anything on disk.
             string zipSha = AssetHash.OfFile(zipPath);
-            if (AssetDigest(latest, PluginZipAsset) is { } zd && zipSha != zd)
+            if (!zipSha.Equals(expectedZipSha, StringComparison.OrdinalIgnoreCase))
                 return (false, string.Format(Resources.Strings.Plugin_Err_VerifyFailed, PluginZipAsset));
             var slotShas = new Dictionary<LoaderSlot, string>();
             foreach (var (slot, p) in slotDlPaths)
             {
                 string sha = AssetHash.OfFile(p);
                 slotShas[slot] = sha;
-                if (AssetDigest(latest, slot.DllAsset) is { } dd && sha != dd)
+                if (!sha.Equals(expectedSlotSha[slot], StringComparison.OrdinalIgnoreCase))
                     return (false, string.Format(Resources.Strings.Plugin_Err_VerifyFailed, slot.DllAsset));
             }
 
