@@ -22,6 +22,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly AuthService _auth;
     private readonly SteamService _steam;
     private readonly HubcapService _hubcap;
+    private readonly SettingsBackupService _maintenance;
 
     [ObservableProperty] private string? _displayName;
     [ObservableProperty] private string? _email;
@@ -250,6 +251,7 @@ public partial class SettingsViewModel : ObservableObject
         _auth = auth;
         _steam = steam;
         _hubcap = hubcap;
+        _maintenance = new SettingsBackupService(settings);
         _auth.AuthStateChanged += RefreshAccount;
         RefreshAccount();
         RefreshSteam();
@@ -268,6 +270,92 @@ public partial class SettingsViewModel : ObservableObject
         // Assign the backing field, not the property: going through the setter would fire the change
         // handler and write the default straight back to disk on first open.
         _selectedDnsMode = DnsModeOptions.FirstOrDefault(o => o.Tag == settings.DnsMode) ?? DnsModeOptions[0];
+    }
+
+
+    // ── Backup, recovery and diagnostics (M2) ──────────────────────
+    [RelayCommand]
+    private void ExportSettingsBackup()
+    {
+        var dialog = new SaveFileDialog
+        {
+            Title = Resources.Strings.Settings_Maintenance_Backup,
+            Filter = "JSON backup (*.json)|*.json",
+            FileName = "LuaTools-settings-" + DateTime.UtcNow.ToString("yyyyMMdd") + ".json",
+            AddExtension = true,
+            DefaultExt = ".json"
+        };
+        if (dialog.ShowDialog() != true) return;
+
+        try
+        {
+            _maintenance.Export(dialog.FileName);
+            System.Windows.MessageBox.Show(Resources.Strings.Settings_Maintenance_BackupSuccess,
+                "LuaTools", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+        }
+        catch
+        {
+            System.Windows.MessageBox.Show(Resources.Strings.Settings_Maintenance_Failed,
+                "LuaTools", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+        }
+    }
+
+    [RelayCommand]
+    private void RestoreSettingsBackup()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = Resources.Strings.Settings_Maintenance_Restore,
+            Filter = "JSON backup (*.json)|*.json",
+            CheckFileExists = true
+        };
+        if (dialog.ShowDialog() != true) return;
+        if (System.Windows.MessageBox.Show(
+                Resources.Strings.Settings_Maintenance_RestoreConfirm,
+                "LuaTools", System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Warning) != System.Windows.MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            _maintenance.Restore(dialog.FileName);
+            if (System.Windows.MessageBox.Show(
+                Resources.Strings.Settings_Maintenance_RestoreSuccess,
+                "LuaTools", System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Question) == System.Windows.MessageBoxResult.Yes)
+                RequestRestart?.Invoke();
+        }
+        catch
+        {
+            System.Windows.MessageBox.Show(Resources.Strings.Settings_Maintenance_Failed,
+                "LuaTools", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+        }
+    }
+
+    [RelayCommand]
+    private void ExportDiagnosticReport()
+    {
+        var dialog = new SaveFileDialog
+        {
+            Title = Resources.Strings.Settings_Maintenance_Diagnostics,
+            Filter = "JSON report (*.json)|*.json",
+            FileName = "LuaTools-diagnostics-" + DateTime.UtcNow.ToString("yyyyMMdd") + ".json",
+            AddExtension = true,
+            DefaultExt = ".json"
+        };
+        if (dialog.ShowDialog() != true) return;
+
+        try
+        {
+            DiagnosticsService.Default.ExportReport(dialog.FileName, _settings.SettingsFilePath);
+            System.Windows.MessageBox.Show(Resources.Strings.Settings_Maintenance_ReportSuccess,
+                "LuaTools", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+        }
+        catch
+        {
+            System.Windows.MessageBox.Show(Resources.Strings.Settings_Maintenance_Failed,
+                "LuaTools", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+        }
     }
 
     private void RefreshSteam()
