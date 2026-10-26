@@ -53,6 +53,7 @@ internal sealed class DiagnosticsService
     /// <summary>Create a privacy-safe report without user settings, absolute paths or exception details.</summary>
     internal void ExportReport(string targetPath, string settingsPath)
     {
+        GuardReportDestination(targetPath, settingsPath);
         var counts = Enum.GetNames<DiagnosticEvent>()
             .ToDictionary(name => name, _ => 0, StringComparer.Ordinal);
 
@@ -61,6 +62,9 @@ internal sealed class DiagnosticsService
             foreach (var path in new[] { _logPath + ".previous", _logPath })
             {
                 if (!File.Exists(path)) continue;
+                // Only read the bounded log files created by this service. Skip externally
+                // modified oversized logs to prevent memory exhaustion during export.
+                if (new FileInfo(path).Length > MaxLogBytes + 4096) continue;
                 foreach (string line in File.ReadLines(path))
                 {
                     string eventName = line[(line.LastIndexOf('|') + 1)..];
@@ -84,6 +88,28 @@ internal sealed class DiagnosticsService
         string json = JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true });
         AtomicWrite(targetPath, json);
         Record(DiagnosticEvent.DiagnosticReportCreated);
+    }
+
+    internal static bool IsProtectedReportDestination(string targetPath, string settingsPath,
+        string diagnosticsPath)
+    {
+        string target = Path.GetFullPath(targetPath);
+        string primary = Path.GetFullPath(settingsPath);
+        string diagnostics = Path.GetFullPath(diagnosticsPath);
+        string pluginLog = Path.Combine(Path.GetDirectoryName(primary)!, "plugin-backend.log");
+        foreach (var path in new[] { primary, primary + ".bak", primary + ".tmp",
+                     diagnostics, diagnostics + ".previous", pluginLog })
+        {
+            if (string.Equals(target, Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
+    }
+
+    private void GuardReportDestination(string targetPath, string settingsPath)
+    {
+        if (IsProtectedReportDestination(targetPath, settingsPath, _logPath))
+            throw new InvalidOperationException("Cannot overwrite LuaTools configuration or logs.");
     }
 
     internal static void AtomicWrite(string targetPath, string content)
