@@ -40,6 +40,16 @@ public static class Strings
     public static string Settings_Section_General => Get(nameof(Settings_Section_General));
     public static string Settings_Section_Steam => Get(nameof(Settings_Section_Steam));
     public static string Settings_Section_Install => Get(nameof(Settings_Section_Install));
+    public static string Settings_Section_Maintenance => Get(nameof(Settings_Section_Maintenance));
+    public static string Settings_Maintenance_Hint => Get(nameof(Settings_Maintenance_Hint));
+    public static string Settings_Maintenance_Backup => Get(nameof(Settings_Maintenance_Backup));
+    public static string Settings_Maintenance_Restore => Get(nameof(Settings_Maintenance_Restore));
+    public static string Settings_Maintenance_Diagnostics => Get(nameof(Settings_Maintenance_Diagnostics));
+    public static string Settings_Maintenance_RestoreConfirm => Get(nameof(Settings_Maintenance_RestoreConfirm));
+    public static string Settings_Maintenance_RestoreSuccess => Get(nameof(Settings_Maintenance_RestoreSuccess));
+    public static string Settings_Maintenance_BackupSuccess => Get(nameof(Settings_Maintenance_BackupSuccess));
+    public static string Settings_Maintenance_ReportSuccess => Get(nameof(Settings_Maintenance_ReportSuccess));
+    public static string Settings_Maintenance_Failed => Get(nameof(Settings_Maintenance_Failed));
     public static string Settings_Section_Community => Get(nameof(Settings_Section_Community));
     public static string Settings_SignOut => Get(nameof(Settings_SignOut));
     public static string Settings_BrowsingAsGuest => Get(nameof(Settings_BrowsingAsGuest));
