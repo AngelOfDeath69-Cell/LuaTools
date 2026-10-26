@@ -138,7 +138,8 @@ public partial class LuaInstaller(SteamService steam, SettingsService settings, 
     /// <summary>Copy a bare &lt;appid&gt;.lua into stplug-in (overwrites). Used for DLC unlocks.
     /// <paramref name="forceLocked"/> keeps manifest pins (for Denuvo fixes). The build id is read from
     /// <paramref name="luaPath"/>'s own name, so a &lt;appid&gt;_&lt;buildid&gt;.lua is vaulted as that build.</summary>
-    public InstallResult InstallLua(string luaPath, long appId, bool forceLocked = false, string? source = null)
+    public InstallResult InstallLua(string luaPath, long appId, bool forceLocked = false,
+        string? source = null, string? originalFileName = null)
     {
         string? dir = steam.StPlugInDir;
         if (dir is null) return InstallResult.Fail(Resources.Strings.Err_SteamNotFound);
@@ -147,7 +148,7 @@ public partial class LuaInstaller(SteamService steam, SettingsService settings, 
         {
             Directory.CreateDirectory(dir);
             string dest = Path.Combine(dir, $"{appId}.lua");
-            string? buildId = BuildIdFromFileName(luaPath);
+            string? buildId = BuildIdFromFileName(originalFileName ?? luaPath);
 
             WriteLua(luaPath, dest, KeepPinsFor(buildId, forceLocked));
             CaptureInstalled(appId, dest, buildId, source); // exactly what Steam now reads → the active build
