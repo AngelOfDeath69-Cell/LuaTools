@@ -506,12 +506,23 @@ public class ManifestJobFactory(
         {
             var result = IsZip(file.FilePath)
                 ? installer.InstallZip(file.FilePath, appId)
-                : installer.InstallLua(file.FilePath, appId);
+                : installer.InstallLua(file.FilePath, appId, originalFileName: file.FileName);
 
             if (result.Error is not null) return new JobResult(false, result.Error);
             if (result.AnyFailed)
                 return new JobResult(false,
                     string.Format(Resources.Strings.Add_Status_InstallFailed, result.Failed.Count));
+
+            // A ZIP containing only manifests is NOT a verified base-app addition.
+            // Do not show success unless an app-specific Lua file reached its destination.
+            if (!result.LuaInstalled)
+                return new JobResult(false,
+                    string.Format(Resources.Strings.Err_DownloadMissingFiles, $"{appId}.lua"));
+
+            string? installedPath = installer.ReadInstalledLua(appId);
+            if (installedPath is null)
+                return new JobResult(false,
+                    string.Format(Resources.Strings.Err_WriteFailedFile, $"{appId}.lua"));
 
             string message = result.ManifestCount > 0
                 ? string.Format(Resources.Strings.Add_Status_AddedManifests, gameName, result.ManifestCount)
@@ -519,7 +530,7 @@ public class ManifestJobFactory(
 
             // Where it LANDED, not where it was staged: file.FilePath is deleted by the finally below,
             // so returning it handed callers a path guaranteed not to exist.
-            return new JobResult(true, message, installer.ReadInstalledLua(appId));
+            return new JobResult(true, message, installedPath);
         }
         finally
         {
