@@ -99,7 +99,7 @@ public partial class SettingsViewModel : ObservableObject
             if (key is null) return;
             if (value)
                 // Keep the same minimized-start behavior as the ordinary settings toggle.
-                key.SetValue(RunValueName, $"\\"{Environment.ProcessPath}\\" --minimized");
+                key.SetValue(RunValueName, $"\"{Environment.ProcessPath}\" --minimized");
             else
                 key.DeleteValue(RunValueName, throwOnMissingValue: false);
         }
