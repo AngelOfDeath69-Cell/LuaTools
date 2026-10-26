@@ -214,25 +214,30 @@ public class SettingsService
         catch { /* best effort */ }
     }
 
+
+    /// <summary>True when at least one user-selected setting must survive an app restart.</summary>
+    internal static bool HasPersistedValues(AppSettings settings) =>
+        settings.SteamPathOverride is not null
+        || settings.SelectedMode is not null
+        || settings.AutoUpdateApps is not null
+        || settings.DonateKeys is not null
+        || settings.ManagePageSize is not null
+        || settings.FixesPageSize is not null
+        || settings.BuildsPageSize is not null
+        || settings.Language is not null
+        || settings.HubcapApiKey is not null
+        || settings.StartWithWindows is not null
+        || settings.MinimizeToTray is not null
+        || settings.FastFetch is not null
+        || settings.DnsMode is not null;
+
     private void Save()
     {
         // Nothing worth persisting → don't leave a settings file behind.
         // Every persisted field must be listed here. A field left out is treated as "nothing worth
         // keeping", so a user whose ONLY change was that setting gets the file deleted and the setting
         // silently lost on the next save. (FixesPageSize was missing.)
-        bool empty = _settings.SteamPathOverride is null
-            && _settings.SelectedMode is null
-            && _settings.AutoUpdateApps is null
-            && _settings.DonateKeys is null
-            && _settings.ManagePageSize is null
-            && _settings.FixesPageSize is null
-            && _settings.BuildsPageSize is null
-            && _settings.Language is null
-            && _settings.HubcapApiKey is null
-            && _settings.StartWithWindows is null
-            && _settings.MinimizeToTray is null
-            && _settings.FastFetch is null;
-        if (empty)
+        if (!HasPersistedValues(_settings))
         {
             foreach (var p in new[] { FilePath, BakPath, TmpPath })
                 try { if (File.Exists(p)) File.Delete(p); } catch { /* best effort */ }
