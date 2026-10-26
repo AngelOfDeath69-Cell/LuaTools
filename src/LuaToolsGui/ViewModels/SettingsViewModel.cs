@@ -87,18 +87,23 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnStartWithWindowsChanged(bool value)
     {
         _settings.StartWithWindows = value;
+        ApplyStartupRegistration(value);
+    }
+
+    /// <summary>Reconcile the Windows Run key without a second settings write after import.</summary>
+    private static void ApplyStartupRegistration(bool value)
+    {
         try
         {
             using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: true);
             if (key is null) return;
             if (value)
-                // --minimized: start silently in the tray on sign-in so it just serves the
-                // local backend (127.0.0.1:6767) for the Steam plugin without stealing focus.
-                key.SetValue(RunValueName, $"\"{Environment.ProcessPath}\" --minimized");
+                // Keep the same minimized-start behavior as the ordinary settings toggle.
+                key.SetValue(RunValueName, $"\\"{Environment.ProcessPath}\\" --minimized");
             else
                 key.DeleteValue(RunValueName, throwOnMissingValue: false);
         }
-        catch { /* registry write blocked. Setting is still saved, just not applied this run */ }
+        catch { /* registry write blocked. Do not expose system paths or break settings restore */ }
     }
 
     /// <summary>Minimize to the system tray instead of the taskbar. Persisted via SettingsService.</summary>
@@ -319,6 +324,11 @@ public partial class SettingsViewModel : ObservableObject
         try
         {
             _maintenance.Restore(dialog.FileName);
+            // Restore changes the backing settings directly. Apply autostart without a second Save()
+            // so the pre-restore .bak remains available, and refresh the visible toggle.
+            ApplyStartupRegistration(_settings.StartWithWindows);
+            _startWithWindows = _settings.StartWithWindows;
+            OnPropertyChanged(nameof(StartWithWindows));
             if (System.Windows.MessageBox.Show(
                 Resources.Strings.Settings_Maintenance_RestoreSuccess,
                 "LuaTools", System.Windows.MessageBoxButton.YesNo,
