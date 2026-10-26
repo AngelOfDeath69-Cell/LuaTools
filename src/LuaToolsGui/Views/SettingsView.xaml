@@ -548,6 +548,32 @@
                 </StackPanel>
             </Border>
 
+            <!-- Backup / Recovery / Diagnostics -->
+            <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.Settings_Section_Maintenance}" />
+            <Border Style="{StaticResource SettingsCard}">
+                <StackPanel Margin="14,12">
+                    <TextBlock
+                        FontSize="12"
+                        Foreground="#9ca3af"
+                        Text="{x:Static res:Strings.Settings_Maintenance_Hint}"
+                        TextWrapping="Wrap" />
+                    <WrapPanel Margin="0,12,0,0">
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Content="{x:Static res:Strings.Settings_Maintenance_Backup}"
+                            Command="{Binding ExportSettingsBackupCommand}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Content="{x:Static res:Strings.Settings_Maintenance_Restore}"
+                            Command="{Binding RestoreSettingsBackupCommand}" />
+                        <ui:Button
+                            Margin="0,0,0,8"
+                            Content="{x:Static res:Strings.Settings_Maintenance_Diagnostics}"
+                            Command="{Binding ExportDiagnosticReportCommand}" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
             <!-- Community -->
             <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.Settings_Section_Community}" />
             <Border Style="{StaticResource SettingsCard}">
