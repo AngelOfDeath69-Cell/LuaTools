@@ -43,6 +43,8 @@ public sealed class SecurityRegressionTests
     [InlineData("diagnostics.log")]
     [InlineData("diagnostics.log.previous")]
     [InlineData("plugin-backend.log")]
+    [InlineData("plugin-events.log")]
+    [InlineData("plugin-events.log.previous")]
     public void DiagnosticReport_CannotOverwriteApplicationData(string protectedName)
     {
         string root = Path.Combine(Path.GetTempPath(), "LuaTools-Security-" + Guid.NewGuid().ToString("N"));
