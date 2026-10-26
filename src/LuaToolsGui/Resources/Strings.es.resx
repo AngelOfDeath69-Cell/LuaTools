@@ -624,4 +624,14 @@ Cancelar: seguir descargando</value></data>
   <data name="Depot_Err_NoKeyFor" xml:space="preserve"><value>No hay clave de descifrado en el Lua para el depot {0}.</value></data>
   <data name="Builds_Select_SharedHint" xml:space="preserve"><value>Runtime compartido: normalmente ya está instalado. Marca para descargarlo igualmente.</value></data>
   <data name="Downloads_ClearHistory_Confirm" xml:space="preserve"><value>¿Quitar las {0} entradas del historial de descargas? Los archivos descargados no se ven afectados.</value></data>
+  <data name="Settings_Section_Maintenance" xml:space="preserve"><value>BACKUP &amp; DIAGNOSTICS</value></data>
+  <data name="Settings_Maintenance_Hint" xml:space="preserve"><value>Export and restore your settings. Backups exclude API keys. Restoring preserves the API key already stored on this PC. Restart after restoring. Diagnostic reports contain only event counts and application version.</value></data>
+  <data name="Settings_Maintenance_Backup" xml:space="preserve"><value>Export settings backup</value></data>
+  <data name="Settings_Maintenance_Restore" xml:space="preserve"><value>Restore settings backup</value></data>
+  <data name="Settings_Maintenance_Diagnostics" xml:space="preserve"><value>Export diagnostic report</value></data>
+  <data name="Settings_Maintenance_RestoreConfirm" xml:space="preserve"><value>Restore settings from this backup? Existing preferences will be replaced, but your API key will be kept.</value></data>
+  <data name="Settings_Maintenance_RestoreSuccess" xml:space="preserve"><value>Settings restored. Restart LuaTools now to apply the changes?</value></data>
+  <data name="Settings_Maintenance_BackupSuccess" xml:space="preserve"><value>Settings backup exported. API keys are not included.</value></data>
+  <data name="Settings_Maintenance_ReportSuccess" xml:space="preserve"><value>Diagnostic report exported. No authentication keys or personal paths were included.</value></data>
+  <data name="Settings_Maintenance_Failed" xml:space="preserve"><value>The operation failed. Check the file location, available space and backup integrity.</value></data>
 </root>
