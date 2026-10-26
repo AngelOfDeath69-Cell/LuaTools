@@ -151,7 +151,17 @@ public class HttpServerService : IHostedService
         var req = ctx.Request;
         var resp = ctx.Response;
 
-        SetCors(resp);
+        // Reject untrusted browser origins before any state-changing route is dispatched.
+        // Requests without Origin are allowed only when Fetch Metadata does not mark them cross-site.
+        string? origin = req.Headers["Origin"];
+        if (!LocalApiRequestPolicy.IsAllowed(origin, req.Headers["Sec-Fetch-Site"]))
+        {
+            resp.StatusCode = 403;
+            resp.Close();
+            return;
+        }
+
+        SetCors(resp, origin);
         resp.ContentType = "application/json; charset=utf-8";
 
         try
@@ -195,7 +205,7 @@ public class HttpServerService : IHostedService
         catch (Exception ex)
         {
             resp.StatusCode = 500;
-            var body = Encoding.UTF8.GetBytes(JsonErr(ex.Message));
+            var body = Encoding.UTF8.GetBytes(JsonErr("Internal server error"));
             await resp.OutputStream.WriteAsync(body);
         }
         finally
@@ -601,9 +611,12 @@ public class HttpServerService : IHostedService
 
     // ── Helpers ───────────────────────────────────────────────────────
 
-    private static void SetCors(HttpListenerResponse resp)
+    private static void SetCors(HttpListenerResponse resp, string? origin)
     {
-        resp.AddHeader("Access-Control-Allow-Origin", "*");
+        if (string.IsNullOrWhiteSpace(origin)) return;
+        // Origin has already passed LocalApiRequestPolicy's exact allowlist.
+        resp.AddHeader("Access-Control-Allow-Origin", origin);
+        resp.AddHeader("Vary", "Origin");
         resp.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         resp.AddHeader("Access-Control-Allow-Headers", "Content-Type");
     }
