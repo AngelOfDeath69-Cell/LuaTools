@@ -624,4 +624,14 @@
   <data name="Fixes_Revert_Conflict_Body" xml:space="preserve"><value>自套用此修復以來，{0} 已被變更，還原會覆寫這些變更。如果你在其上套用了另一個修復，請先還原那一個。共影響 {1} 個檔案。</value></data>
   <data name="Fixes_Revert_Partial" xml:space="preserve"><value>修復部分還原</value></data>
   <data name="Fixes_Revert_Partial_Body" xml:space="preserve"><value>有 {0} 個檔案無法復原。請關閉遊戲後重試。</value></data>
+  <data name="Settings_Section_Maintenance" xml:space="preserve"><value>BACKUP &amp; DIAGNOSTICS</value></data>
+  <data name="Settings_Maintenance_Hint" xml:space="preserve"><value>Export and restore your settings. Backups exclude API keys. Restoring preserves the API key already stored on this PC. Restart after restoring. Diagnostic reports contain only event counts and application version.</value></data>
+  <data name="Settings_Maintenance_Backup" xml:space="preserve"><value>Export settings backup</value></data>
+  <data name="Settings_Maintenance_Restore" xml:space="preserve"><value>Restore settings backup</value></data>
+  <data name="Settings_Maintenance_Diagnostics" xml:space="preserve"><value>Export diagnostic report</value></data>
+  <data name="Settings_Maintenance_RestoreConfirm" xml:space="preserve"><value>Restore settings from this backup? Existing preferences will be replaced, but your API key will be kept.</value></data>
+  <data name="Settings_Maintenance_RestoreSuccess" xml:space="preserve"><value>Settings restored. Restart LuaTools now to apply the changes?</value></data>
+  <data name="Settings_Maintenance_BackupSuccess" xml:space="preserve"><value>Settings backup exported. API keys are not included.</value></data>
+  <data name="Settings_Maintenance_ReportSuccess" xml:space="preserve"><value>Diagnostic report exported. No authentication keys or personal paths were included.</value></data>
+  <data name="Settings_Maintenance_Failed" xml:space="preserve"><value>The operation failed. Check the file location, available space and backup integrity.</value></data>
 </root>

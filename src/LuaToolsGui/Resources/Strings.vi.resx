@@ -624,4 +624,14 @@ Hủy - tiếp tục tải</value></data>
   <data name="Fixes_Revert_Conflict_Body" xml:space="preserve"><value>{0} đã thay đổi kể từ khi bản vá này được áp dụng, nên khôi phục sẽ ghi đè các thay đổi đó. Nếu bạn đã áp dụng bản vá khác lên trên, hãy hoàn tác bản đó trước. {1} tệp bị ảnh hưởng.</value></data>
   <data name="Fixes_Revert_Partial" xml:space="preserve"><value>Bản sửa lỗi được hoàn tác một phần</value></data>
   <data name="Fixes_Revert_Partial_Body" xml:space="preserve"><value>Không thể khôi phục {0} tệp. Hãy đóng trò chơi và thử lại.</value></data>
+  <data name="Settings_Section_Maintenance" xml:space="preserve"><value>BACKUP &amp; DIAGNOSTICS</value></data>
+  <data name="Settings_Maintenance_Hint" xml:space="preserve"><value>Export and restore your settings. Backups exclude API keys. Restoring preserves the API key already stored on this PC. Restart after restoring. Diagnostic reports contain only event counts and application version.</value></data>
+  <data name="Settings_Maintenance_Backup" xml:space="preserve"><value>Export settings backup</value></data>
+  <data name="Settings_Maintenance_Restore" xml:space="preserve"><value>Restore settings backup</value></data>
+  <data name="Settings_Maintenance_Diagnostics" xml:space="preserve"><value>Export diagnostic report</value></data>
+  <data name="Settings_Maintenance_RestoreConfirm" xml:space="preserve"><value>Restore settings from this backup? Existing preferences will be replaced, but your API key will be kept.</value></data>
+  <data name="Settings_Maintenance_RestoreSuccess" xml:space="preserve"><value>Settings restored. Restart LuaTools now to apply the changes?</value></data>
+  <data name="Settings_Maintenance_BackupSuccess" xml:space="preserve"><value>Settings backup exported. API keys are not included.</value></data>
+  <data name="Settings_Maintenance_ReportSuccess" xml:space="preserve"><value>Diagnostic report exported. No authentication keys or personal paths were included.</value></data>
+  <data name="Settings_Maintenance_Failed" xml:space="preserve"><value>The operation failed. Check the file location, available space and backup integrity.</value></data>
 </root>
