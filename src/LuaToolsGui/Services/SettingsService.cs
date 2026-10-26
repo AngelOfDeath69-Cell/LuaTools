@@ -234,7 +234,23 @@ public class SettingsService
         try
         {
             if (!File.Exists(path)) return false;
-            if (JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(path)) is { } loaded)
+            string json = File.ReadAllText(path);
+            // Unknown-only objects must not silently replace existing settings with defaults.
+            // Still accept {} (an intentional default-only restore) and known fields with
+            // unknown future fields for backward-compatible migrations.
+            using var document = JsonDocument.Parse(json);
+            if (document.RootElement.ValueKind != JsonValueKind.Object) return false;
+            bool hasProperties = false;
+            bool hasKnownProperty = false;
+            foreach (var property in document.RootElement.EnumerateObject())
+            {
+                hasProperties = true;
+                if (typeof(AppSettings).GetProperty(property.Name) is not null)
+                    hasKnownProperty = true;
+            }
+            if (hasProperties && !hasKnownProperty) return false;
+
+            if (JsonSerializer.Deserialize<AppSettings>(json) is { } loaded)
             {
                 _settings = loaded;
                 return true;
