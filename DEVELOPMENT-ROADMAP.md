@@ -15,10 +15,17 @@ This is an incremental engineering plan for the Windows WPF/.NET 8 application. 
 | Milestone | State | Planned deliverables | Definition of done |
 |---|---|---|---|
 | M1 — Foundation | In progress | Portable win-x64 build, staged-download safety, unique temporary paths, partial-file cleanup, content-length verification, DNS settings regression, tests | Windows CI green, EXE ZIP and SHA-256 generated |
-| M2 — Data safety | Planned | Settings export/restore, JSON recovery, confidential-data-aware diagnostic logs, error capture | Backup/restore tests; no API keys or auth tokens in logs |
+| M2 — Data safety | Implemented; CI and Windows smoke pending | Versioned settings backup/restore, safe corrupt-file recovery, allowlisted diagnostic counters and WPF controls | Backup/recovery tests, i18n checks, win-x64 EXE build, manual UI check |
 | M3 — WPF UI/UX | Planned | Consistent navigation, keyboard shortcuts, accessibility, loading/empty/error states, localization | Windows 100%/150% display tests; keyboard and i18n checks |
 | M4 — Lua file workflows | Planned | Search, preview, syntax diagnostics, diff, reversible backup/undo for user-authored Lua | UTF-8/BOM/CRLF tests, atomic saves, rollback |
 | M5 — Performance & release | Planned | Cancellation, UI responsiveness, profiling, versioned release notes | Measured improvements, green CI, manual Windows checks |
+
+## M2 feature notes
+
+- See MAINTENANCE.md for the versioned backup format, key-preserving restore, diagnostic privacy and manual recovery procedure.
+- API credentials are deliberately excluded from portable backups; SteamPathOverride may still contain an identifiable folder name.
+- Diagnostic reports contain only fixed event counts, versions and configuration-file presence flags.
+- English fallback text is used for newly added controls outside Indonesian until human translations are provided.
 
 ## M1 implementation notes
 
