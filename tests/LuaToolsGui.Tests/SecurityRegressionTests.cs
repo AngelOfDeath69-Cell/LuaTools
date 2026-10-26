@@ -87,6 +87,23 @@ public sealed class SecurityRegressionTests
     }
 
     [Fact]
+    public void UnknownOnlySettingsJson_IsQuarantinedInsteadOfSilentlyDiscardingSettings()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "LuaTools-Unknown-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            string path = Path.Combine(root, "settings.json");
+            File.WriteAllText(path, "{\"InjectedUnknownSetting\":\"not a valid settings payload\"}");
+            File.WriteAllText(path + ".bak", "{\"DnsMode\":\"Always\"}");
+            var loaded = new SettingsService(path);
+            Assert.Equal("Always", loaded.DnsMode);
+            Assert.Single(Directory.GetFiles(root, "*.corrupt"));
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [Fact]
     public void DownloadTemporaryUniqueName_DoesNotCorruptOriginalLuaBuildIdentity()
     {
         string staged = Path.Combine(Path.GetTempPath(), "1234_5678-" + Guid.NewGuid().ToString("N") + ".lua");
