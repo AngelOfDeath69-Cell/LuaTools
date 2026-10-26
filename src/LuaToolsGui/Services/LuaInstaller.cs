@@ -46,6 +46,10 @@ public partial class LuaInstaller(SteamService steam, SettingsService settings, 
         return m.Success ? m.Groups[1].Value : null;
     }
 
+    /// <summary>Staged files have unique random suffixes. Preserve build identity from the server name.</summary>
+    internal static string? BuildIdFromStagedDownload(string stagedPath, string? originalFileName) =>
+        BuildIdFromFileName(originalFileName ?? stagedPath);
+
     /// <summary>
     /// A lua named &lt;appid&gt;_&lt;buildid&gt;.lua must keep its manifest pins, even with "Auto Update Apps"
     /// on. Those pins ARE the build. Installing it de-pinned would hand the user whatever version Steam
@@ -148,7 +152,7 @@ public partial class LuaInstaller(SteamService steam, SettingsService settings, 
         {
             Directory.CreateDirectory(dir);
             string dest = Path.Combine(dir, $"{appId}.lua");
-            string? buildId = BuildIdFromFileName(originalFileName ?? luaPath);
+            string? buildId = BuildIdFromStagedDownload(luaPath, originalFileName);
 
             WriteLua(luaPath, dest, KeepPinsFor(buildId, forceLocked));
             CaptureInstalled(appId, dest, buildId, source); // exactly what Steam now reads → the active build
