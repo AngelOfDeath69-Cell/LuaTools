@@ -231,22 +231,9 @@ public partial class App : Application
         var dnsSettings = _host.Services.GetRequiredService<SettingsService>();
         AppHttp.ModeProvider = () => dnsSettings.DnsMode;
 
-        // Legacy cleanup: older builds staged downloads in ~/Downloads/LuaTools (they now stage in
-        // %TEMP% and self-delete). Remove any leftovers from that user-visible folder, best-effort.
-        // Also sweep the current %TEMP% staging folder: a crash mid-download, or an overwrite confirm
-        // the user never answered, leaves a staged zip nobody will ever delete.
-        _ = System.Threading.Tasks.Task.Run(() =>
-        {
-            try
-            {
-                string legacy = System.IO.Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", "LuaTools");
-                if (System.IO.Directory.Exists(legacy)) System.IO.Directory.Delete(legacy, recursive: true);
-            }
-            catch { /* best effort, never block startup on cleanup */ }
-
-            Services.Downloads.HttpFileDownloader.SweepStale();
-        });
+        // Only sweep LuaTools-owned temporary staging files. Never recursively delete a user's
+        // Downloads subfolder: it may contain manually saved data unrelated to this application.
+        _ = System.Threading.Tasks.Task.Run(Services.Downloads.HttpFileDownloader.SweepStale);
 
         await _host.StartAsync();
 
