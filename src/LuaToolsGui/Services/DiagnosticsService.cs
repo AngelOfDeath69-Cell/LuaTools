@@ -97,8 +97,10 @@ internal sealed class DiagnosticsService
         string primary = Path.GetFullPath(settingsPath);
         string diagnostics = Path.GetFullPath(diagnosticsPath);
         string pluginLog = Path.Combine(Path.GetDirectoryName(primary)!, "plugin-backend.log");
+        string pluginEvents = Path.Combine(Path.GetDirectoryName(primary)!, "plugin-events.log");
         foreach (var path in new[] { primary, primary + ".bak", primary + ".tmp",
-                     diagnostics, diagnostics + ".previous", pluginLog })
+                     diagnostics, diagnostics + ".previous", pluginLog,
+                     pluginEvents, pluginEvents + ".previous" })
         {
             if (string.Equals(target, Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase))
                 return true;
