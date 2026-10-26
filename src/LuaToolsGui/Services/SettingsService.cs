@@ -94,7 +94,7 @@ public class SettingsService
         var previous = _settings;
         restored.HubcapApiKey = previous.HubcapApiKey;
         _settings = restored;
-        try { Save(); }
+        try { Save(preserveEmptyFile: true); }
         catch
         {
             _settings = previous;
@@ -278,13 +278,13 @@ public class SettingsService
         || settings.FastFetch is not null
         || settings.DnsMode is not null;
 
-    private void Save()
+    private void Save(bool preserveEmptyFile = false)
     {
         // Nothing worth persisting → don't leave a settings file behind.
         // Every persisted field must be listed here. A field left out is treated as "nothing worth
         // keeping", so a user whose ONLY change was that setting gets the file deleted and the setting
         // silently lost on the next save. (FixesPageSize was missing.)
-        if (!HasPersistedValues(_settings))
+        if (!preserveEmptyFile && !HasPersistedValues(_settings))
         {
             foreach (var p in new[] { _filePath, _bakPath, _tmpPath })
                 try { if (File.Exists(p)) File.Delete(p); } catch { /* best effort */ }
